@@ -1,0 +1,18 @@
+{
+  "devDependencies": {
+    "ava": "^1.2.0",
+    "ts-node": "^8.0.2",
+    "typescript": "^3.3.1"
+  },
+  "scripts": {
+    "node": "ts-node",
+    "test": "ava"
+  },
+  "ava": {
+    "compileEnhancements": false,
+    "extensions": ["ts"],
+    "require": [
+      "ts-node/register"
+    ]
+  }
+}
