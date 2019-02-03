@@ -1,8 +1,8 @@
 import test from "ava";
-import { FARule, DFARuleBook } from "./finite_automata";
+import { FARule, DFARuleBook, DFA, DFADesign } from "./finite_automata";
 
 test("FARule#appliesTo", t => {
-  const rule = new FARule<number>(1, "c", 2);
+  const rule = new FARule(1, "c", 2);
   t.true(
     rule.appliesTo(1, "c") === true,
     `ルールに対応する状態と入力が与えられた場合, trueを返す`
@@ -24,14 +24,18 @@ test("FARule#follow", t => {
   );
 });
 
+test("FARule#inspect", t => {
+  t.true(new FARule(1, "a", 2).toString() === `#<FA Rule 1 --a--> 2`);
+});
+
 test("DFARulebook#nextState", t => {
   const rulebook = new DFARuleBook(
-    new FARule<number>(1, "a", 2),
-    new FARule<number>(2, "a", 2),
-    new FARule<number>(3, "a", 3),
-    new FARule<number>(1, "b", 1),
-    new FARule<number>(2, "b", 3),
-    new FARule<number>(3, "b", 3)
+    new FARule(1, "a", 2),
+    new FARule(2, "a", 2),
+    new FARule(3, "a", 3),
+    new FARule(1, "b", 1),
+    new FARule(2, "b", 3),
+    new FARule(3, "b", 3)
   );
 
   t.true(
@@ -54,4 +58,67 @@ test("DFARulebook#nextState", t => {
     rulebook.nextState(4, "a") === null,
     `与えられた状態と入力対応したルールがない場合、null返す。`
   );
+});
+
+test("DFA#accepting", t => {
+  const rulebook = new DFARuleBook(
+    new FARule(1, "a", 2),
+    new FARule(2, "a", 2),
+    new FARule(3, "a", 3),
+    new FARule(1, "b", 1),
+    new FARule(2, "b", 3),
+    new FARule(3, "b", 3)
+  );
+
+  const dfa = new DFA(1, [1, 3], rulebook);
+  t.true(dfa.accepting());
+  const dfa2 = new DFA(1, [3], rulebook);
+  t.false(dfa2.accepting());
+});
+
+test("DFA#readChar", t => {
+  const rulebook = new DFARuleBook(
+    new FARule(1, "a", 2),
+    new FARule(2, "a", 2),
+    new FARule(3, "a", 3),
+    new FARule(1, "b", 1),
+    new FARule(2, "b", 3),
+    new FARule(3, "b", 3)
+  );
+  const dfa = new DFA(1, [3], rulebook);
+  dfa.readChar("b");
+  t.false(dfa.accepting());
+  ["a", "a", "a"].forEach(c => dfa.readChar(c));
+  t.false(dfa.accepting());
+  dfa.readChar("b");
+  t.true(dfa.accepting());
+});
+
+test("DFA#readString", t => {
+  const rulebook = new DFARuleBook(
+    new FARule(1, "a", 2),
+    new FARule(2, "a", 2),
+    new FARule(3, "a", 3),
+    new FARule(1, "b", 1),
+    new FARule(2, "b", 3),
+    new FARule(3, "b", 3)
+  );
+  const dfa = new DFA(1, [3], rulebook);
+  dfa.readString("baaab");
+  t.true(dfa.accepting());
+});
+
+test("DFADesign#acceps", t => {
+  const rulebook = new DFARuleBook(
+    new FARule(1, "a", 2),
+    new FARule(2, "a", 2),
+    new FARule(3, "a", 3),
+    new FARule(1, "b", 1),
+    new FARule(2, "b", 3),
+    new FARule(3, "b", 3)
+  );
+  const dfadesign = new DFADesign(1, [3], rulebook);
+  t.false(dfadesign.accepts("a"));
+  t.false(dfadesign.accepts("baa"));
+  t.true(dfadesign.accepts("baba"));
 });

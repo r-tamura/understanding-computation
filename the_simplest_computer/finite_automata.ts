@@ -1,5 +1,3 @@
-export type State = number | null;
-
 export class FARule<StateType> {
   private state: StateType;
   private character: string;
@@ -40,5 +38,71 @@ export class DFARuleBook<StateType> {
       rule.appliesTo(state, character);
     const filtered = this.rules.filter(appliesTo);
     return filtered.length > 0 ? filtered[0] : null;
+  }
+}
+
+export class DFA<S> {
+  private currentState: S | null;
+  private acceptStates: S[];
+  private rulebook: DFARuleBook<S>;
+
+  constructor(currentState: S, acceptStates: S[], rulebook: DFARuleBook<S>) {
+    this.currentState = currentState;
+    this.acceptStates = acceptStates;
+    this.rulebook = rulebook;
+  }
+
+  accepting() {
+    if (this.isNull(this.currentState)) {
+      return false;
+    }
+    return this.acceptStates.includes(this.currentState);
+  }
+
+  readChar(character: string) {
+    if (this.isNull(this.currentState)) {
+      return;
+    }
+    this.currentState = this.rulebook.nextState(this.currentState, character);
+  }
+
+  readString(s: string) {
+    for (const c of s) {
+      this.readChar(c);
+    }
+  }
+
+  private isNull(v: any): v is null {
+    return v === null;
+  }
+}
+
+export class DFADesign<S> {
+  private startState: S;
+  private acceptState: S[];
+  private rulebook: DFARuleBook<S>;
+
+  constructor(startState: S, acceptState: S[], rulebook: DFARuleBook<S>) {
+    this.startState = startState;
+    this.acceptState = acceptState;
+    this.rulebook = rulebook;
+  }
+
+  toDfa() {
+    return new DFA(this.startState, this.acceptState, this.rulebook);
+  }
+
+  accepts(s: string) {
+    return this.tap((dfa: DFA<S>) => dfa.readString(s))(
+      this.toDfa()
+    ).accepting();
+  }
+
+  private tap<T>(f: (s: T) => any | void) {
+    const w = (x: T) => {
+      f(x);
+      return x;
+    };
+    return w;
   }
 }
