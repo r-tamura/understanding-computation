@@ -1,3 +1,5 @@
+import { uniq, flatMap } from "../util";
+
 export class FARule<StateType> {
   private state: StateType;
   private character: string;
@@ -22,7 +24,7 @@ export class FARule<StateType> {
   }
 }
 
-export class DFARuleBook<StateType> {
+export class DFARulebook<StateType> {
   private rules: FARule<StateType>[];
   constructor(...rules: FARule<StateType>[]) {
     this.rules = rules;
@@ -44,9 +46,9 @@ export class DFARuleBook<StateType> {
 export class DFA<S> {
   private currentState: S | null;
   private acceptStates: S[];
-  private rulebook: DFARuleBook<S>;
+  private rulebook: DFARulebook<S>;
 
-  constructor(currentState: S, acceptStates: S[], rulebook: DFARuleBook<S>) {
+  constructor(currentState: S, acceptStates: S[], rulebook: DFARulebook<S>) {
     this.currentState = currentState;
     this.acceptStates = acceptStates;
     this.rulebook = rulebook;
@@ -80,9 +82,9 @@ export class DFA<S> {
 export class DFADesign<S> {
   private startState: S;
   private acceptState: S[];
-  private rulebook: DFARuleBook<S>;
+  private rulebook: DFARulebook<S>;
 
-  constructor(startState: S, acceptState: S[], rulebook: DFARuleBook<S>) {
+  constructor(startState: S, acceptState: S[], rulebook: DFARulebook<S>) {
     this.startState = startState;
     this.acceptState = acceptState;
     this.rulebook = rulebook;
@@ -104,5 +106,29 @@ export class DFADesign<S> {
       return x;
     };
     return w;
+  }
+}
+
+export class NFARulebook<S> {
+  private rules: FARule<S>[];
+
+  constructor(...rules: FARule<S>[]) {
+    this.rules = rules;
+  }
+
+  nextStates(states: S[], character: string) {
+    const xs1 = flatMap(s => this.followRulesFor(s, character), states);
+    const xs2 = uniq(xs1);
+    return xs2;
+  }
+
+  followRulesFor(state: S, character: string) {
+    const follow = (rule: FARule<S>) => rule.follow();
+    return this.rulesFor(state, character).map(follow);
+  }
+
+  rulesFor(state: S, character: string) {
+    const appliesTo = (rule: FARule<S>) => rule.appliesTo(state, character);
+    return this.rules.filter(appliesTo);
   }
 }

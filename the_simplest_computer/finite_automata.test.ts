@@ -1,5 +1,11 @@
 import test from "ava";
-import { FARule, DFARuleBook, DFA, DFADesign } from "./finite_automata";
+import {
+  FARule,
+  DFARulebook,
+  DFA,
+  DFADesign,
+  NFARulebook
+} from "./finite_automata";
 
 test("FARule#appliesTo", t => {
   const rule = new FARule(1, "c", 2);
@@ -29,7 +35,7 @@ test("FARule#inspect", t => {
 });
 
 test("DFARulebook#nextState", t => {
-  const rulebook = new DFARuleBook(
+  const rulebook = new DFARulebook(
     new FARule(1, "a", 2),
     new FARule(2, "a", 2),
     new FARule(3, "a", 3),
@@ -61,7 +67,7 @@ test("DFARulebook#nextState", t => {
 });
 
 test("DFA#accepting", t => {
-  const rulebook = new DFARuleBook(
+  const rulebook = new DFARulebook(
     new FARule(1, "a", 2),
     new FARule(2, "a", 2),
     new FARule(3, "a", 3),
@@ -77,7 +83,7 @@ test("DFA#accepting", t => {
 });
 
 test("DFA#readChar", t => {
-  const rulebook = new DFARuleBook(
+  const rulebook = new DFARulebook(
     new FARule(1, "a", 2),
     new FARule(2, "a", 2),
     new FARule(3, "a", 3),
@@ -95,7 +101,7 @@ test("DFA#readChar", t => {
 });
 
 test("DFA#readString", t => {
-  const rulebook = new DFARuleBook(
+  const rulebook = new DFARulebook(
     new FARule(1, "a", 2),
     new FARule(2, "a", 2),
     new FARule(3, "a", 3),
@@ -109,7 +115,7 @@ test("DFA#readString", t => {
 });
 
 test("DFADesign#acceps", t => {
-  const rulebook = new DFARuleBook(
+  const rulebook = new DFARulebook(
     new FARule(1, "a", 2),
     new FARule(2, "a", 2),
     new FARule(3, "a", 3),
@@ -121,4 +127,19 @@ test("DFADesign#acceps", t => {
   t.false(dfadesign.accepts("a"));
   t.false(dfadesign.accepts("baa"));
   t.true(dfadesign.accepts("baba"));
+});
+
+test("NFARulebook#nextStates", t => {
+  const rulebook = new NFARulebook(
+    new FARule(1, "a", 1),
+    new FARule(1, "b", 1),
+    new FARule(1, "b", 2),
+    new FARule(2, "a", 3),
+    new FARule(2, "b", 3),
+    new FARule(3, "a", 4),
+    new FARule(3, "b", 4)
+  );
+  t.deepEqual(rulebook.nextStates([1], "b"), [1, 2]);
+  t.deepEqual(rulebook.nextStates([1, 2], "a"), [1, 3]);
+  t.deepEqual(rulebook.nextStates([1, 3], "b"), [1, 2, 4]);
 });
