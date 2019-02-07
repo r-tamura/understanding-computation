@@ -4,7 +4,9 @@ import {
   DFARulebook,
   DFA,
   DFADesign,
-  NFARulebook
+  NFARulebook,
+  NFA,
+  NFADesign
 } from "./finite_automata";
 
 test("FARule#appliesTo", t => {
@@ -142,4 +144,57 @@ test("NFARulebook#nextStates", t => {
   t.deepEqual(rulebook.nextStates([1], "b"), [1, 2]);
   t.deepEqual(rulebook.nextStates([1, 2], "a"), [1, 3]);
   t.deepEqual(rulebook.nextStates([1, 3], "b"), [1, 2, 4]);
+});
+
+test("NFA#accepting", t => {
+  const rulebook = new NFARulebook(
+    new FARule(1, "a", 1),
+    new FARule(1, "b", 1),
+    new FARule(1, "b", 2),
+    new FARule(2, "a", 3),
+    new FARule(2, "b", 3),
+    new FARule(3, "a", 4),
+    new FARule(3, "b", 4)
+  );
+  t.false(new NFA([1], [4], rulebook).accepting());
+  t.true(new NFA([1, 2, 4], [4], rulebook).accepting());
+});
+
+test("NFA#readString", t => {
+  const rulebook = new NFARulebook(
+    new FARule(1, "a", 1),
+    new FARule(1, "b", 1),
+    new FARule(1, "b", 2),
+    new FARule(2, "a", 3),
+    new FARule(2, "b", 3),
+    new FARule(3, "a", 4),
+    new FARule(3, "b", 4)
+  );
+  const nfa = new NFA([1], [4], rulebook);
+  nfa.readChar("b");
+  t.false(nfa.accepting());
+  nfa.readChar("a");
+  t.false(nfa.accepting());
+  nfa.readChar("b");
+  t.true(nfa.accepting());
+
+  const nfa2 = new NFA([1], [4], rulebook);
+  nfa2.readString("bbbbb");
+  t.true(nfa.accepting());
+});
+
+test("NFADesign#accepts", t => {
+  const rulebook = new NFARulebook(
+    new FARule(1, "a", 1),
+    new FARule(1, "b", 1),
+    new FARule(1, "b", 2),
+    new FARule(2, "a", 3),
+    new FARule(2, "b", 3),
+    new FARule(3, "a", 4),
+    new FARule(3, "b", 4)
+  );
+  const nfaDesign = new NFADesign(1, [4], rulebook);
+  t.true(nfaDesign.accepts("bab"));
+  t.true(nfaDesign.accepts("bbbbb"));
+  t.false(nfaDesign.accepts("bbabb"));
 });

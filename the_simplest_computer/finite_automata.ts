@@ -1,4 +1,4 @@
-import { uniq, flatMap } from "../util";
+import { uniq, flatMap, intersection, tap } from "../util";
 
 export class FARule<StateType> {
   private state: StateType;
@@ -95,17 +95,7 @@ export class DFADesign<S> {
   }
 
   accepts(s: string) {
-    return this.tap((dfa: DFA<S>) => dfa.readString(s))(
-      this.toDfa()
-    ).accepting();
-  }
-
-  private tap<T>(f: (s: T) => any | void) {
-    const w = (x: T) => {
-      f(x);
-      return x;
-    };
-    return w;
+    return tap((dfa: DFA<S>) => dfa.readString(s))(this.toDfa()).accepting();
   }
 }
 
@@ -130,5 +120,54 @@ export class NFARulebook<S> {
   rulesFor(state: S, character: string) {
     const appliesTo = (rule: FARule<S>) => rule.appliesTo(state, character);
     return this.rules.filter(appliesTo);
+  }
+}
+
+export class NFA<S> {
+  private currentStates: S[];
+  private acceptStates: S[];
+  private rulebook: NFARulebook<S>;
+
+  constructor(currentStates: S[], acceptStates: S[], rulebook: NFARulebook<S>) {
+    this.currentStates = currentStates;
+    this.acceptStates = acceptStates;
+    this.rulebook = rulebook;
+  }
+
+  accepting() {
+    return intersection(this.currentStates, this.acceptStates).length > 0;
+  }
+
+  readChar(character: string) {
+    this.currentStates = this.rulebook.nextStates(
+      this.currentStates,
+      character
+    );
+  }
+
+  readString(str: string) {
+    for (const c of str) {
+      this.readChar(c);
+    }
+  }
+}
+
+export class NFADesign<S> {
+  private startState: S;
+  private acceptStates: S[];
+  private rulebook: NFARulebook<S>;
+
+  constructor(startState: S, acceptStates: S[], rulebook: NFARulebook<S>) {
+    this.startState = startState;
+    this.acceptStates = acceptStates;
+    this.rulebook = rulebook;
+  }
+
+  accepts(s: string) {
+    return tap((dfa: NFA<S>) => dfa.readString(s))(this.toNfa()).accepting();
+  }
+
+  toNfa() {
+    return new NFA([this.startState], this.acceptStates, this.rulebook);
   }
 }
