@@ -1,4 +1,15 @@
-import { reverse } from "../util";
+/**
+ * プッシュダウンオートマトンの実装
+ * 型Sは状態の型、型Tは入力の型をあらわす。
+ */
+import {
+  reverse,
+  flatMap,
+  uniq,
+  uniqBy,
+  isSubset,
+  intersection
+} from "../util";
 
 export class Stack<T> {
   private contents: T[];
@@ -19,7 +30,7 @@ export class Stack<T> {
 
   top(): T {
     if (this.contents.length === 0) {
-      throw new RangeError();
+      throw new RangeError("stack is empty");
     }
     return this.contents[0];
   }
@@ -152,8 +163,15 @@ export class DPDA<S, T> {
 
   readString(str: Iterable<T>) {
     for (const c of str) {
+      if (this.isStuck()) {
+        return;
+      }
       this.readChar(c);
     }
+  }
+
+  isStuck() {
+    return this.currentConfiguration === null;
   }
 }
 
@@ -188,5 +206,122 @@ export class DPDADesign<S, T> {
       startStack
     );
     return new DPDA(startConfiguration, this.acceptStates, this.rulebook);
+  }
+}
+
+export class NPDARulebook<S, T> {
+  private rules: PDARule<S, T>[];
+  constructor(...rules: PDARule<S, T>[]) {
+    this.rules = rules;
+  }
+
+  nextConfigurations(
+    configurations: PDAConfiguration<S, T>[],
+    character: T | null
+  ) {
+    const xs1 = flatMap(
+      configuration => this.fowlloRulesFor(configuration, character),
+      configurations
+    );
+    const keyFn = (c: PDAConfiguration<S, T>) => {
+      return JSON.stringify(c);
+    };
+    const xs2 = uniqBy(keyFn, xs1);
+    return xs2;
+  }
+
+  fowlloRulesFor(configuration: PDAConfiguration<S, T>, character: T | null) {
+    return this.rulesFor(configuration, character).map(rule =>
+      rule.follow(configuration)
+    );
+  }
+
+  rulesFor(configuration: PDAConfiguration<S, T>, character: T | null) {
+    return this.rules.filter(rule => rule.applisTo(configuration, character));
+  }
+
+  followFreeMoves(
+    configurations: PDAConfiguration<S, T>[]
+  ): PDAConfiguration<S, T>[] {
+    const moreConfigurations = this.nextConfigurations(configurations, null);
+    if (isSubset(moreConfigurations, configurations, JSON.stringify)) {
+      return configurations;
+    }
+    return this.followFreeMoves([...configurations, ...moreConfigurations]);
+  }
+}
+
+export class NPDA<S, T> {
+  private _curentConfigurations: PDAConfiguration<S, T>[];
+  private acceptStates: S[];
+  private rulebook: NPDARulebook<S, T>;
+  constructor(
+    curentConfigurations: PDAConfiguration<S, T>[],
+    acceptStates: S[],
+    rulebook: NPDARulebook<S, T>
+  ) {
+    this._curentConfigurations = curentConfigurations;
+    this.acceptStates = acceptStates;
+    this.rulebook = rulebook;
+  }
+
+  get currentConfigurations() {
+    return this.rulebook.followFreeMoves(this._curentConfigurations);
+  }
+
+  accepting() {
+    return (
+      intersection(
+        this.currentConfigurations.map(c => c.state),
+        this.acceptStates
+      ).length > 0
+    );
+  }
+
+  readChar(character: T) {
+    this._curentConfigurations = this.rulebook.nextConfigurations(
+      this.currentConfigurations,
+      character
+    );
+  }
+
+  readString(str: Iterable<T>) {
+    for (const c of str) {
+      this.readChar(c);
+    }
+  }
+}
+
+export class NPDADesign<S, T> {
+  private startState: S;
+  private bottomChar: T;
+  private acceptStates: S[];
+  private rulebook: NPDARulebook<S, T>;
+
+  constructor(
+    startState: S,
+    bottomChar: T,
+    acceptStates: S[],
+    rulebook: NPDARulebook<S, T>
+  ) {
+    this.startState = startState;
+    this.bottomChar = bottomChar;
+    this.acceptStates = acceptStates;
+    this.rulebook = rulebook;
+  }
+
+  accepts(str: Iterable<T>) {
+    const dpda = this.toNpda();
+    dpda.readString(str);
+    return dpda.accepting();
+  }
+
+  toNpda() {
+    const startStack = new Stack(this.bottomChar);
+    const startConfiguration = new PDAConfiguration(
+      this.startState,
+      startStack
+    );
+    return new NPDA([startConfiguration], this.acceptStates, this.rulebook);
   }
 }

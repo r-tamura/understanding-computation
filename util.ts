@@ -66,9 +66,10 @@ export function intersection<T>(xs: T[], ys: T[]) {
  * isSubset(a, b) // true
  * isSubset(b, a) // false
  */
-export function isSubset<T>(xs: T[], ys: T[]) {
+export function isSubset<T>(xs: T[], ys: T[], keyFn = identity) {
+  const yKeys = ys.map(keyFn);
   for (const x of xs) {
-    if (!ys.includes(x)) {
+    if (!yKeys.includes(keyFn(x))) {
       return false;
     }
   }
