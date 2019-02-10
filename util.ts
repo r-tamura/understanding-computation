@@ -17,6 +17,7 @@ export function tap<T>(f: (s: T) => any | void) {
 /**
  * List Functions
  */
+
 export function uniq<T>(xs: T[]): T[] {
   return uniqBy(identity, xs);
 }
@@ -72,4 +73,16 @@ export function isSubset<T>(xs: T[], ys: T[]) {
     }
   }
   return true;
+}
+
+/*
+ * String
+ */
+export function reverse(str: string) {
+  let reversed = "";
+  for (const c of str) {
+    reversed = c + reversed;
+  }
+  return reversed;
+  // return str.split().reverse().join()
 }
