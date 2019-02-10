@@ -1,3 +1,5 @@
+import { reverse } from "../util";
+
 export class Stack<T> {
   private contents: T[];
   constructor(...contents: T[]) {
@@ -51,9 +53,11 @@ export class PDARule<S, T> {
     this.pushChars = popChars;
   }
 
-  applisTo(configuration: PDAConfiguration<S, T>, character: T) {
+  applisTo(configuration: PDAConfiguration<S, T>, character: T | null) {
     return (
-      this.popChar === configuration.stack.top() && this.character === character
+      this.state === configuration.state &&
+      this.popChar === configuration.stack.top() &&
+      this.character === character
     );
   }
 
@@ -63,9 +67,7 @@ export class PDARule<S, T> {
 
   nextStack(configuration: PDAConfiguration<S, T>) {
     const poppedStack = configuration.stack.pop();
-    return this.pushChars
-      .reverse()
-      .reduce((acc, c) => acc.push(c), poppedStack);
+    return reverse(this.pushChars).reduce((acc, c) => acc.push(c), poppedStack);
   }
 }
 
@@ -75,15 +77,116 @@ export class DPDARulebook<S, T> {
     this.rules = rules;
   }
 
-  nextConfiguration(configuration: PDAConfiguration<S, T>, character: T) {
+  nextConfiguration(
+    configuration: PDAConfiguration<S, T>,
+    character: T | null
+  ) {
     const rule = this.ruleFor(configuration, character);
     return rule !== null ? rule.follow(configuration) : null;
   }
 
-  ruleFor(configuration: PDAConfiguration<S, T>, character: T) {
+  ruleFor(configuration: PDAConfiguration<S, T>, character: T | null) {
     const filtered = this.rules.filter(x =>
       x.applisTo(configuration, character)
     );
     return filtered.length > 0 ? filtered[0] : null;
+  }
+
+  followFreeMoves(
+    configuration: PDAConfiguration<S, T>
+  ): PDAConfiguration<S, T> {
+    if (this.applisTo(configuration, null)) {
+      const nextConfiguration = this.nextConfiguration(configuration, null);
+      if (nextConfiguration === null) {
+        return configuration;
+      }
+      return this.followFreeMoves(nextConfiguration);
+    } else {
+      return configuration;
+    }
+  }
+
+  applisTo(configuration: PDAConfiguration<S, T>, character: T | null) {
+    return this.ruleFor(configuration, character) !== null;
+  }
+}
+
+export class DPDA<S, T> {
+  private _currentConfiguration: PDAConfiguration<S, T> | null;
+  private acceptStates: S[];
+  private rulebook: DPDARulebook<S, T>;
+
+  constructor(
+    currentConfiguration: PDAConfiguration<S, T>,
+    acceptStates: S[],
+    rulebook: DPDARulebook<S, T>
+  ) {
+    this._currentConfiguration = currentConfiguration;
+    this.acceptStates = acceptStates;
+    this.rulebook = rulebook;
+  }
+
+  get currentConfiguration() {
+    if (this._currentConfiguration === null) {
+      return null;
+    }
+    return this.rulebook.followFreeMoves(this._currentConfiguration);
+  }
+
+  accepting() {
+    if (this.currentConfiguration === null) {
+      return false;
+    }
+    return this.acceptStates.includes(this.currentConfiguration.state);
+  }
+
+  readChar(character: T) {
+    if (this.currentConfiguration === null) {
+      return;
+    }
+    this._currentConfiguration = this.rulebook.nextConfiguration(
+      this.currentConfiguration,
+      character
+    );
+  }
+
+  readString(str: Iterable<T>) {
+    for (const c of str) {
+      this.readChar(c);
+    }
+  }
+}
+
+export class DPDADesign<S, T> {
+  private startState: S;
+  private bottomChar: T;
+  private acceptStates: S[];
+  private rulebook: DPDARulebook<S, T>;
+
+  constructor(
+    startState: S,
+    bottomChar: T,
+    acceptStates: S[],
+    rulebook: DPDARulebook<S, T>
+  ) {
+    this.startState = startState;
+    this.bottomChar = bottomChar;
+    this.acceptStates = acceptStates;
+    this.rulebook = rulebook;
+  }
+
+  accepts(str: Iterable<T>) {
+    const dpda = this.toDpda();
+    dpda.readString(str);
+    return dpda.accepting();
+  }
+
+  toDpda() {
+    const startStack = new Stack(this.bottomChar);
+    const startConfiguration = new PDAConfiguration(
+      this.startState,
+      startStack
+    );
+    return new DPDA(startConfiguration, this.acceptStates, this.rulebook);
   }
 }

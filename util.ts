@@ -75,14 +75,18 @@ export function isSubset<T>(xs: T[], ys: T[]) {
   return true;
 }
 
-/*
- * String
- */
-export function reverse(str: string) {
-  let reversed = "";
-  for (const c of str) {
-    reversed = c + reversed;
+export function reverse<T>(iter: Iterable<T>) {
+  switch (iter.constructor) {
+    case Array: {
+      const res = [];
+      for (const x of iter) {
+        res.unshift(x);
+      }
+      return res;
+    }
+    default:
+      throw new TypeError(
+        `[app] expected Iterable type object, but given '${iter.constructor}'`
+      );
   }
-  return reversed;
-  // return str.split().reverse().join()
 }
