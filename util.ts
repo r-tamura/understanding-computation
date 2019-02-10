@@ -53,3 +53,23 @@ export function intersection<T>(xs: T[], ys: T[]) {
   }
   return result;
 }
+
+/**
+ * リストxsがリストysの部分集合であるかを判定します
+ * @param xs
+ * @param ys
+ *
+ * @example リストaがリストbの部分集合
+ * const a = [1, 3]
+ * const b = [1, 2, 3, 4]
+ * isSubset(a, b) // true
+ * isSubset(b, a) // false
+ */
+export function isSubset<T>(xs: T[], ys: T[]) {
+  for (const x of xs) {
+    if (!ys.includes(x)) {
+      return false;
+    }
+  }
+  return true;
+}

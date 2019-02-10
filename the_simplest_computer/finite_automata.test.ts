@@ -198,3 +198,38 @@ test("NFADesign#accepts", t => {
   t.true(nfaDesign.accepts("bbbbb"));
   t.false(nfaDesign.accepts("bbabb"));
 });
+
+test("NFADesign#accepts with free moves", t => {
+  const rulebook = new NFARulebook(
+    new FARule(1, null, 2),
+    new FARule(1, null, 4),
+    new FARule(2, "a", 3),
+    new FARule(3, "a", 2),
+    new FARule(4, "a", 5),
+    new FARule(5, "a", 6),
+    new FARule(6, "a", 4)
+  );
+  const nfaDesignWithFreeMoves = new NFADesign(1, [2, 4], rulebook);
+  t.true(nfaDesignWithFreeMoves.accepts("aa"));
+  t.true(nfaDesignWithFreeMoves.accepts("aaa"));
+  t.false(nfaDesignWithFreeMoves.accepts("aaaaa"));
+  t.true(nfaDesignWithFreeMoves.accepts("aaaaaa"));
+});
+
+test("NFARulebook#fowllowFreeMoves", t => {
+  const rulebook = new NFARulebook(
+    new FARule(1, null, 2),
+    new FARule(1, null, 4),
+    new FARule(2, "a", 3),
+    new FARule(3, "a", 2),
+    new FARule(4, "a", 5),
+    new FARule(5, "a", 6),
+    new FARule(6, "a", 4)
+  );
+  t.deepEqual(
+    rulebook.followFreeMoves([1]),
+    [1, 2, 4],
+    `入力を与えられない場合、自由移動かな能な全ての状態へ遷移する`
+  );
+  t.deepEqual(rulebook.nextStates([1], null), [2, 4]);
+});

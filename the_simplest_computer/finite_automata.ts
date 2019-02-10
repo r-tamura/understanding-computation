@@ -1,17 +1,21 @@
-import { uniq, flatMap, intersection, tap } from "../util";
+import { uniq, flatMap, intersection, tap, isSubset } from "../util";
 
 export class FARule<StateType> {
   private state: StateType;
-  private character: string;
+  private character: string | null;
   private nextState: StateType;
 
-  constructor(state: StateType, character: string, nextState: StateType) {
+  constructor(
+    state: StateType,
+    character: string | null,
+    nextState: StateType
+  ) {
     this.state = state;
     this.character = character;
     this.nextState = nextState;
   }
 
-  appliesTo(state: StateType, character: string) {
+  appliesTo(state: StateType, character: string | null) {
     return this.state === state && this.character === character;
   }
 
@@ -106,32 +110,49 @@ export class NFARulebook<S> {
     this.rules = rules;
   }
 
-  nextStates(states: S[], character: string) {
+  nextStates(states: S[], character: string | null) {
     const xs1 = flatMap(s => this.followRulesFor(s, character), states);
     const xs2 = uniq(xs1);
     return xs2;
   }
 
-  followRulesFor(state: S, character: string) {
+  followRulesFor(state: S, character: string | null) {
     const follow = (rule: FARule<S>) => rule.follow();
     return this.rulesFor(state, character).map(follow);
   }
 
-  rulesFor(state: S, character: string) {
+  rulesFor(state: S, character: string | null) {
     const appliesTo = (rule: FARule<S>) => rule.appliesTo(state, character);
     return this.rules.filter(appliesTo);
+  }
+
+  followFreeMoves(states: S[]): S[] {
+    const moreStates = this.nextStates(states, null);
+
+    if (isSubset(moreStates, states)) {
+      return states;
+    } else {
+      return this.followFreeMoves([...states, ...moreStates]);
+    }
   }
 }
 
 export class NFA<S> {
-  private currentStates: S[];
+  /**
+   * currentStatesのgetterを関数とするため, _を変数名の頭につけている
+   */
+  private _currentStates: S[];
   private acceptStates: S[];
   private rulebook: NFARulebook<S>;
 
   constructor(currentStates: S[], acceptStates: S[], rulebook: NFARulebook<S>) {
-    this.currentStates = currentStates;
+    this._currentStates = currentStates;
     this.acceptStates = acceptStates;
     this.rulebook = rulebook;
+  }
+
+  get currentStates(): S[] {
+    return this.rulebook.followFreeMoves(this._currentStates);
   }
 
   accepting() {
@@ -139,7 +160,7 @@ export class NFA<S> {
   }
 
   readChar(character: string) {
-    this.currentStates = this.rulebook.nextStates(
+    this._currentStates = this.rulebook.nextStates(
       this.currentStates,
       character
     );
