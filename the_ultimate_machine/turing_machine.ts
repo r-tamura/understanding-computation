@@ -91,3 +91,70 @@ export class TMRule<S, T> {
       : writtenTape.moveHeadRight();
   }
 }
+
+export class DTMRulebook<S, T> {
+  private rules: TMRule<S, T>[];
+  constructor(...rules: TMRule<S, T>[]) {
+    this.rules = rules;
+  }
+
+  nextConfiguration(c: TMConfiguration<S, T>) {
+    const rule = this.ruleFor(c);
+    return rule ? rule.follow(c) : null;
+  }
+
+  ruleFor(c: TMConfiguration<S, T>) {
+    const filtered = this.rules.filter(rule => rule.appliesTo(c));
+    return filtered.length > 0 ? filtered[0] : null;
+  }
+}
+
+type StuckState = symbol;
+const STUCK_STATE: StuckState = Symbol("stuck_state");
+export class DTM<S, T> {
+  private currentConfiguration: TMConfiguration<S, T> | StuckState;
+  private acceptStates: S[];
+  private rulebook: DTMRulebook<S, T>;
+  constructor(
+    currentConfiguration: TMConfiguration<S, T>,
+    acceptStates: S[],
+    rulebook: DTMRulebook<S, T>
+  ) {
+    this.currentConfiguration = currentConfiguration;
+    this.acceptStates = acceptStates;
+    this.rulebook = rulebook;
+  }
+
+  accepting() {
+    if (this._isStuck(this.currentConfiguration)) {
+      return false;
+    }
+    return this.acceptStates.includes(this.currentConfiguration.state);
+  }
+
+  step() {
+    if (this._isStuck(this.currentConfiguration)) {
+      return;
+    }
+    const nextConfiguration = this.rulebook.nextConfiguration(
+      this.currentConfiguration
+    );
+    this.currentConfiguration = nextConfiguration
+      ? nextConfiguration
+      : STUCK_STATE;
+  }
+
+  run() {
+    while (!this.accepting() && !this.isStuck()) {
+      this.step();
+    }
+  }
+
+  isStuck() {
+    return this._isStuck(this.currentConfiguration);
+  }
+
+  private _isStuck(c: TMConfiguration<S, T> | StuckState): c is StuckState {
+    return c === STUCK_STATE;
+  }
+}
