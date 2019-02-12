@@ -1,20 +1,31 @@
-type Value = number;
-type Proc = (x: Value) => Value;
+type Value = number | boolean;
+type Proc<T extends Value> = (x: T) => T;
+
 /**
  * 内部
  */
-export const ZERO = (p: Proc) => (x: Value) => x;
-export const ONE = (p: Proc) => (x: Value) => p(x);
-export const TWO = (p: Proc) => (x: Value) => p(p(x));
-export const THREE = (p: Proc) => (x: Value) => p(p(p(x)));
-export const FOUR = (p: Proc) => (x: Value) => p(p(p(p(x))));
-export const FIVE = (p: Proc) => (x: Value) => p(p(p(p(p(x)))));
+// 数
+type LambdaInteger = (p: Proc<number>) => (x: number) => number;
+export const ZERO: LambdaInteger = p => x => x;
+export const ONE: LambdaInteger = p => x => p(x);
+export const TWO: LambdaInteger = p => x => p(p(x));
+export const THREE: LambdaInteger = p => x => p(p(p(x)));
+export const FOUR: LambdaInteger = p => x => p(p(p(p(x))));
+export const FIVE: LambdaInteger = p => x => p(p(p(p(p(x)))));
 // 必要な数の分だけ続く...
+
+// 真偽値
+type LambdaBoolean = (x: boolean) => (y: boolean) => boolean;
+export const TRUE: LambdaBoolean = x => y => x;
+export const FALSE: LambdaBoolean = x => y => y;
 
 /**
  * Assert用
  */
-type Integer = (p: Proc) => (x: Value) => Value;
-export function toInteger(lambda: Integer) {
-  return lambda((x: Value) => x + 1)(0);
+export function toInteger(lambda: LambdaInteger) {
+  return lambda(x => x + 1)(0);
+}
+
+export function toBoolean(lambda: LambdaBoolean) {
+  return lambda(true)(false);
 }

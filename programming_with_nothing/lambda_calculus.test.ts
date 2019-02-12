@@ -6,7 +6,10 @@ import {
   TWO,
   THREE,
   FOUR,
-  FIVE
+  FIVE,
+  toBoolean,
+  TRUE,
+  FALSE
 } from "./lambda_calculus";
 
 test("toInteger", t => {
@@ -14,10 +17,15 @@ test("toInteger", t => {
   t.is(toInteger(THREE), 3);
 });
 
-test("Integer", t => {
+test("LambdaIntegers", t => {
   t.is(toInteger(ONE), 1);
   t.is(toInteger(TWO), 2);
   t.is(toInteger(THREE), 3);
   t.is(toInteger(FOUR), 4);
   t.is(toInteger(FIVE), 5);
+});
+
+test("toBoolean/LambdaBoolean", t => {
+  t.true(toBoolean(TRUE));
+  t.false(toBoolean(FALSE));
 });
