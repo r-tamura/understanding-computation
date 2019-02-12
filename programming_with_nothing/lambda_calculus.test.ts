@@ -9,7 +9,9 @@ import {
   FIVE,
   toBoolean,
   TRUE,
-  FALSE
+  FALSE,
+  IF,
+  IS_ZERO
 } from "./lambda_calculus";
 
 test("toInteger", t => {
@@ -28,4 +30,14 @@ test("LambdaIntegers", t => {
 test("toBoolean/LambdaBoolean", t => {
   t.true(toBoolean(TRUE));
   t.false(toBoolean(FALSE));
+});
+
+test("LambdaIf", t => {
+  t.is(IF(TRUE)("happy")("sad"), "happy");
+  t.is(IF(FALSE)("happy")("sad"), "sad");
+});
+
+test("IS_ZERO", t => {
+  t.is(IS_ZERO(ZERO), TRUE);
+  t.is(IS_ZERO(ONE), FALSE);
 });
