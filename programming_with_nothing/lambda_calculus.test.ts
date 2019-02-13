@@ -11,7 +11,10 @@ import {
   TRUE,
   FALSE,
   IF,
-  IS_ZERO
+  IS_ZERO,
+  PAIR,
+  LEFT,
+  RIGHT
 } from "./lambda_calculus";
 
 test("toInteger", t => {
@@ -40,4 +43,10 @@ test("LambdaIf", t => {
 test("IS_ZERO", t => {
   t.is(IS_ZERO(ZERO), TRUE);
   t.is(IS_ZERO(ONE), FALSE);
+});
+
+test("LEFT/RIGHT", t => {
+  const pair = PAIR(THREE)(FIVE);
+  t.is(toInteger(LEFT(pair)), 3);
+  t.is(toInteger(RIGHT(pair)), 5);
 });
