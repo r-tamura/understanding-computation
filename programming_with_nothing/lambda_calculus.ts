@@ -36,20 +36,25 @@ export const IS_ZERO = (n: LambdaInteger) => n(_ => FALSE)(TRUE);
 // ペア
 type LambdaPair<T> = (f: Proc2<T>) => T;
 type LambdaPairConstructor = <T>(x: T) => (y: T) => LambdaPair<T>;
-type LambdaPairIndex = <T>(p: (f: Proc2<T>) => T) => T;
+type LambdaPairIndex = <T>(p: LambdaPair<T>) => T;
 export const PAIR: LambdaPairConstructor = x => y => f => f(x)(y);
 export const LEFT: LambdaPairIndex = p => p(x => y => x);
 export const RIGHT: LambdaPairIndex = p => p(x => y => y);
 
 // 数値演算
-type LambdaIncrement = <T>(n: LambdaInteger) => (p: Proc<T>) => (x: T) => T;
-export const INCREMENT: LambdaIncrement = n => p => x => p(n(p)(x));
+type LambdaUnaryOp = Proc<LambdaInteger>;
+export const INCREMENT: LambdaUnaryOp = n => p => x => p(n(p)(x));
 // Note: decrementはトリッキー。SLIDEでの引数を[-1, 0]とすることで、slideの呼び出し回数-1
 // という状況を作り出せる
 type LambdaSlide = (p: LambdaPair<LambdaInteger>) => LambdaPair<LambdaInteger>;
-type LambdaDecrement = (n: LambdaInteger) => LambdaInteger;
 export const SLIDE: LambdaSlide = p => PAIR(RIGHT(p))(INCREMENT(RIGHT(p)));
-export const DECREMENT: LambdaDecrement = n => LEFT(n(SLIDE)(PAIR(ZERO)(ZERO)));
+export const DECREMENT: LambdaUnaryOp = n => LEFT(n(SLIDE)(PAIR(ZERO)(ZERO)));
+
+type LambdaBinaryOp = Proc2<LambdaInteger>;
+export const ADD: LambdaBinaryOp = m => n => n(INCREMENT)(m);
+export const SUBTRACT: LambdaBinaryOp = m => n => n(DECREMENT)(m);
+export const MULTIPLY: LambdaBinaryOp = m => n => n(ADD(m))(ZERO);
+export const POWER: LambdaBinaryOp = m => n => n(MULTIPLY(m))(ONE);
 
 /**
  * Assert用

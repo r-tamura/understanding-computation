@@ -49,3 +49,18 @@ test("DECREMENT", t => {
   t.is(L.toInteger(L.DECREMENT(L.HUNDRED)), 99);
   t.is(L.toInteger(L.DECREMENT(L.FIFTEEN)), 14);
 });
+
+test("LambdaBinaryOps", t => {
+  t.is(L.toInteger(L.ADD(L.ZERO)(L.ZERO)), 0);
+  t.is(L.toInteger(L.ADD(L.ONE)(L.TWO)), 3);
+  t.is(L.toInteger(L.SUBTRACT(L.ZERO)(L.ZERO)), 0);
+  t.is(L.toInteger(L.SUBTRACT(L.ONE)(L.TWO)), 0);
+  t.is(L.toInteger(L.SUBTRACT(L.TWO)(L.ONE)), 1);
+  t.is(L.toInteger(L.MULTIPLY(L.ZERO)(L.ZERO)), 0);
+  t.is(L.toInteger(L.MULTIPLY(L.ONE)(L.TWO)), 2);
+  t.is(L.toInteger(L.MULTIPLY(L.THREE)(L.FIFTEEN)), 45);
+  t.is(L.toInteger(L.POWER(L.ZERO)(L.ZERO)), 1);
+  t.is(L.toInteger(L.POWER(L.TWO)(L.THREE)), 8);
+  t.is(L.toInteger(L.POWER(L.HUNDRED)(L.ONE)), 100);
+  t.is(L.toInteger(L.POWER(L.ONE)(L.HUNDRED)), 1);
+});
