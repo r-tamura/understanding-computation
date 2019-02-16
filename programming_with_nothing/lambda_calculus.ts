@@ -5,7 +5,7 @@ type Proc2<T> = (x: T) => (y: T) => T;
  * 内部
  */
 // 数
-type LambdaInteger = <T>(p: Proc<T>) => (x: T) => T;
+type LambdaInteger = <T>(p: Proc<T>) => Proc<T>;
 export const ZERO: LambdaInteger = p => x => x;
 export const ONE: LambdaInteger = p => x => p(x);
 export const TWO: LambdaInteger = p => x => p(p(x));
@@ -31,7 +31,8 @@ export const IF: LambdaIf = b => b;
 
 // 述語
 // Note: ZEROは一度もpを呼び出さないことを利用する
-export const IS_ZERO = (n: LambdaInteger) => n(_ => FALSE)(TRUE);
+type LambdaIsZero = (n: LambdaInteger) => LambdaBoolean;
+export const IS_ZERO: LambdaIsZero = n => n((_: LambdaBoolean) => FALSE)(TRUE);
 
 // ペア
 type LambdaPair<T> = (f: Proc2<T>) => T;
@@ -55,6 +56,19 @@ export const ADD: LambdaBinaryOp = m => n => n(INCREMENT)(m);
 export const SUBTRACT: LambdaBinaryOp = m => n => n(DECREMENT)(m);
 export const MULTIPLY: LambdaBinaryOp = m => n => n(ADD(m))(ZERO);
 export const POWER: LambdaBinaryOp = m => n => n(MULTIPLY(m))(ONE);
+
+type LambdaIsLessOrEqual = (
+  m: LambdaInteger
+) => (n: LambdaInteger) => LambdaBoolean;
+export const IS_LESS_OR_EQUAL: LambdaIsLessOrEqual = m => n =>
+  IS_ZERO(SUBTRACT(m)(n));
+
+type LambdaY = <T>(f: Proc<Proc<T>>) => Proc<T>;
+export const Y: LambdaY = <T>(f: Proc<Proc<T>>) => (x => f(x(x)))(x => f(x(x)));
+export const Z: LambdaY = f => (x => f(y => x(x)(y)))(x => f(y => x(x)(y)));
+
+export const MOD = (m: LambdaInteger) => (n: LambdaInteger) =>
+  IF(IS_LESS_OR_EQUAL(n)(m))(x => MOD(SUBTRACT(m)(n))(n)(x))(m);
 
 /**
  * Assert用

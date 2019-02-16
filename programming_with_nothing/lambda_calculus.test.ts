@@ -64,3 +64,18 @@ test("LambdaBinaryOps", t => {
   t.is(L.toInteger(L.POWER(L.HUNDRED)(L.ONE)), 100);
   t.is(L.toInteger(L.POWER(L.ONE)(L.HUNDRED)), 1);
 });
+
+test("IS_LESS_OR_EQUAL", t => {
+  t.is(L.toBoolean(L.IS_LESS_OR_EQUAL(L.ZERO)(L.ZERO)), true);
+  t.is(L.toBoolean(L.IS_LESS_OR_EQUAL(L.ZERO)(L.TWO)), true);
+  t.is(L.toBoolean(L.IS_LESS_OR_EQUAL(L.FIVE)(L.FOUR)), false);
+  t.is(L.toBoolean(L.IS_LESS_OR_EQUAL(L.FIFTEEN)(L.ONE)), false);
+});
+
+test("MOD", t => {
+  t.is(L.toInteger(L.MOD(L.THREE)(L.ONE)), 0);
+  t.is(L.toInteger(L.MOD(L.THREE)(L.THREE)), 0);
+  t.is(L.toInteger(L.MOD(L.THREE)(L.TWO)), 1);
+  t.is(L.toInteger(L.MOD(L.FIVE)(L.TWO)), 1);
+  t.is(L.toInteger(L.MOD(L.TWO)(L.FIVE)), 2);
+});
