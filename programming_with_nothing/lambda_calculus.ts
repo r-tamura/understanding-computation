@@ -35,9 +35,9 @@ type LambdaIsZero = (n: LambdaInteger) => LambdaBoolean;
 export const IS_ZERO: LambdaIsZero = n => n((_: LambdaBoolean) => FALSE)(TRUE);
 
 // ペア
-type LambdaPair<T> = (f: Proc2<T>) => T;
-type LambdaPairConstructor = <T>(x: T) => (y: T) => LambdaPair<T>;
-type LambdaPairIndex = <T>(p: LambdaPair<T>) => T;
+type LambdaPair = (f: Proc2<any>) => any;
+type LambdaPairConstructor = (x: any) => (y: any) => LambdaPair;
+type LambdaPairIndex = (p: LambdaPair) => any;
 export const PAIR: LambdaPairConstructor = x => y => f => f(x)(y);
 export const LEFT: LambdaPairIndex = p => p(x => y => x);
 export const RIGHT: LambdaPairIndex = p => p(x => y => y);
@@ -47,7 +47,7 @@ type LambdaUnaryOp = Proc<LambdaInteger>;
 export const INCREMENT: LambdaUnaryOp = n => p => x => p(n(p)(x));
 // Note: decrementはトリッキー。SLIDEでの引数を[-1, 0]とすることで、slideの呼び出し回数-1
 // という状況を作り出せる
-type LambdaSlide = (p: LambdaPair<LambdaInteger>) => LambdaPair<LambdaInteger>;
+type LambdaSlide = (p: LambdaPair) => LambdaPair;
 export const SLIDE: LambdaSlide = p => PAIR(RIGHT(p))(INCREMENT(RIGHT(p)));
 export const DECREMENT: LambdaUnaryOp = n => LEFT(n(SLIDE)(PAIR(ZERO)(ZERO)));
 
@@ -70,6 +70,13 @@ export const Z: LambdaY = f => (x => f(y => x(x)(y)))(x => f(y => x(x)(y)));
 export const MOD = (m: LambdaInteger) => (n: LambdaInteger) =>
   IF(IS_LESS_OR_EQUAL(n)(m))(x => MOD(SUBTRACT(m)(n))(n)(x))(m);
 
+// List
+export const EMPTY = PAIR(TRUE)(TRUE);
+export const UNSHIFT = (l: any) => (x: any) => PAIR(FALSE)(PAIR(x)(l));
+export const IS_EMPTY = LEFT;
+export const FIRST = l => LEFT(RIGHT(l));
+export const REST = l => RIGHT(RIGHT(l));
+
 /**
  * Assert用
  */
@@ -79,4 +86,13 @@ export function toInteger(n: LambdaInteger) {
 
 export function toBoolean(b: LambdaBoolean) {
   return b(true)(false);
+}
+
+export function toArray<T>(a: LambdaPair) {
+  const array = [] as T[];
+  while (!toBoolean(IS_EMPTY(a))) {
+    array.push(FIRST(a));
+    a = REST(a);
+  }
+  return array;
 }

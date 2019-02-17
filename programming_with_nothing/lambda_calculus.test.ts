@@ -79,3 +79,21 @@ test("MOD", t => {
   t.is(L.toInteger(L.MOD(L.FIVE)(L.TWO)), 1);
   t.is(L.toInteger(L.MOD(L.TWO)(L.FIVE)), 2);
 });
+
+test("LIST", t => {
+  const mylist = L.UNSHIFT(L.UNSHIFT(L.UNSHIFT(L.EMPTY)(L.THREE))(L.TWO))(
+    L.ONE
+  );
+  t.is(L.toInteger(L.FIRST(mylist)), 1);
+  t.is(L.toInteger(L.FIRST(L.REST(mylist))), 2);
+  t.is(L.toInteger(L.FIRST(L.REST(L.REST(mylist)))), 3);
+  t.false(L.toBoolean(L.IS_EMPTY(mylist)));
+  t.true(L.toBoolean(L.IS_EMPTY(L.EMPTY)));
+});
+
+test("toArray", t => {
+  const mylist = L.UNSHIFT(L.UNSHIFT(L.UNSHIFT(L.EMPTY)(L.THREE))(L.TWO))(
+    L.ONE
+  );
+  t.deepEqual((L.toArray(mylist) as any[]).map(L.toInteger), [1, 2, 3]);
+});
