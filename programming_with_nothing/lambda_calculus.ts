@@ -12,6 +12,7 @@ export const TWO: LambdaInteger = p => x => p(p(x));
 export const THREE: LambdaInteger = p => x => p(p(p(x)));
 export const FOUR: LambdaInteger = p => x => p(p(p(p(x))));
 export const FIVE: LambdaInteger = p => x => p(p(p(p(p(x)))));
+export const TEN: LambdaInteger = p => x => p(p(p(p(p(p(p(p(p(p(x))))))))));
 export const FIFTEEN: LambdaInteger = p => x =>
   p(p(p(p(p(p(p(p(p(p(p(p(p(p(p(x)))))))))))))));
 export const HUNDRED: LambdaInteger = p => x =>
@@ -63,19 +64,52 @@ type LambdaIsLessOrEqual = (
 export const IS_LESS_OR_EQUAL: LambdaIsLessOrEqual = m => n =>
   IS_ZERO(SUBTRACT(m)(n));
 
-type LambdaY = <T>(f: Proc<Proc<T>>) => Proc<T>;
-export const Y: LambdaY = <T>(f: Proc<Proc<T>>) => (x => f(x(x)))(x => f(x(x)));
+// Note: 関数の構成が複雑なためFunctionで簡易的な定義とする
+type LambdaY = (f: (x: Function) => Function) => Function;
+export const Y: LambdaY = f => (x => f(x(x)))(x => f(x(x)));
 export const Z: LambdaY = f => (x => f(y => x(x)(y)))(x => f(y => x(x)(y)));
 
-export const MOD = (m: LambdaInteger) => (n: LambdaInteger) =>
-  IF(IS_LESS_OR_EQUAL(n)(m))(x => MOD(SUBTRACT(m)(n))(n)(x))(m);
+export const MOD = Z(
+  (f: Function) => (m: LambdaInteger) => (n: LambdaInteger) =>
+    IF(IS_LESS_OR_EQUAL(n)(m))((x: LambdaInteger) => f(SUBTRACT(m)(n))(n)(x))(m)
+);
 
 // List
 export const EMPTY = PAIR(TRUE)(TRUE);
-export const UNSHIFT = (l: any) => (x: any) => PAIR(FALSE)(PAIR(x)(l));
+export const UNSHIFT = (l: LambdaPair) => (x: any) => PAIR(FALSE)(PAIR(x)(l));
 export const IS_EMPTY = LEFT;
-export const FIRST = l => LEFT(RIGHT(l));
-export const REST = l => RIGHT(RIGHT(l));
+export const FIRST = (l: LambdaPair) => LEFT(RIGHT(l));
+export const REST = (l: LambdaPair) => RIGHT(RIGHT(l));
+
+export const RANGE = Z(
+  (f: Function) => (m: LambdaInteger) => (n: LambdaInteger) =>
+    IF(IS_LESS_OR_EQUAL(m)(n))((x: any) => UNSHIFT(f(INCREMENT(m))(n))(m)(x))(
+      EMPTY
+    )
+);
+
+export const FOLD = Z(f => (l: LambdaPair) => (x: any) => (g: Function) =>
+  IF(IS_EMPTY(l))(x)((y: any) => g(f(REST(l))(x)(g))(FIRST(l))(y))
+);
+
+export const MAP = <T>(k: LambdaPair) => (f: Function) =>
+  FOLD(k)(EMPTY)((l: LambdaPair) => (x: T) => UNSHIFT(l)(f(x)));
+
+// String
+// "FizzBuzz"用なので"B", "F", "i", "u", "z"のみ対応していればよい
+// それぞれの文字を10以降にエンコードする
+type LambdaString = LambdaInteger;
+export const B = TEN;
+export const F = INCREMENT(B);
+export const I = INCREMENT(F);
+export const U = INCREMENT(I);
+export const ZED = INCREMENT(U); // Zコンビネータと被らないように別名にする
+
+export const FIZZ = UNSHIFT(UNSHIFT(UNSHIFT(UNSHIFT(EMPTY)(ZED))(ZED))(I))(F);
+export const BUZZ = UNSHIFT(UNSHIFT(UNSHIFT(UNSHIFT(EMPTY)(ZED))(ZED))(U))(B);
+export const FIZZBUZZ = UNSHIFT(UNSHIFT(UNSHIFT(UNSHIFT(BUZZ)(ZED))(ZED))(I))(
+  F
+);
 
 /**
  * Assert用
@@ -88,11 +122,21 @@ export function toBoolean(b: LambdaBoolean) {
   return b(true)(false);
 }
 
-export function toArray<T>(a: LambdaPair) {
+export function toArray<T>(a: LambdaPair): any[] {
   const array = [] as T[];
   while (!toBoolean(IS_EMPTY(a))) {
     array.push(FIRST(a));
     a = REST(a);
   }
   return array;
+}
+
+export function toChar(c: LambdaString) {
+  return "0123456789BFiuz"[toInteger(c)];
+}
+
+export function toString(s: LambdaPair) {
+  return toArray(s)
+    .map(toChar)
+    .join("");
 }

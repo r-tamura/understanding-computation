@@ -1,5 +1,6 @@
 import test from "ava";
 import * as L from "./lambda_calculus";
+import { R } from "../the_ultimate_machine/turing_machine";
 
 test("toInteger", t => {
   t.is(L.toInteger(L.ZERO), 0);
@@ -12,6 +13,7 @@ test("LambdaIntegers", t => {
   t.is(L.toInteger(L.THREE), 3);
   t.is(L.toInteger(L.FOUR), 4);
   t.is(L.toInteger(L.FIVE), 5);
+  t.is(L.toInteger(L.TEN), 10);
   t.is(L.toInteger(L.FIFTEEN), 15);
   t.is(L.toInteger(L.HUNDRED), 100);
 });
@@ -95,5 +97,32 @@ test("toArray", t => {
   const mylist = L.UNSHIFT(L.UNSHIFT(L.UNSHIFT(L.EMPTY)(L.THREE))(L.TWO))(
     L.ONE
   );
-  t.deepEqual((L.toArray(mylist) as any[]).map(L.toInteger), [1, 2, 3]);
+  t.deepEqual(L.toArray(mylist).map(L.toInteger), [1, 2, 3]);
+});
+
+test("RANGE", t => {
+  t.deepEqual(L.toArray(L.RANGE(L.ONE)(L.FIVE)).map(L.toInteger), [
+    1,
+    2,
+    3,
+    4,
+    5
+  ]);
+});
+
+test("FOLD", t => {
+  t.is(L.toInteger(L.FOLD(L.RANGE(L.ONE)(L.FIVE))(L.ZERO)(L.ADD)), 15);
+  t.is(L.toInteger(L.FOLD(L.RANGE(L.ONE)(L.FIVE))(L.ONE)(L.MULTIPLY)), 120);
+});
+
+test("MAP", t => {
+  const mylist = L.MAP(L.RANGE(L.ONE)(L.FIVE))(L.INCREMENT);
+  t.deepEqual(L.toArray(mylist).map(L.toInteger), [2, 3, 4, 5, 6]);
+});
+
+test("toChar/toString", t => {
+  t.is(L.toChar(L.ZED), "z");
+  t.is(L.toChar(L.B), "B");
+  t.is(L.toChar(L.ZERO), "0");
+  t.is(L.toString(L.FIZZBUZZ), "FizzBuzz");
 });
