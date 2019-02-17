@@ -172,3 +172,52 @@ test("FIZZBUZZ_FUNC", t => {
     "FizzBuzz"
   ]);
 });
+
+test("Infinite Streams (ZEROS)", t => {
+  t.deepEqual(L.toArray(L.ZEROS, 0).map(L.toInteger), []);
+  t.deepEqual(L.toArray(L.ZEROS, 5).map(L.toInteger), [0, 0, 0, 0, 0]);
+});
+
+test("Infinite Streams (UPWARD_OF)", t => {
+  t.deepEqual(L.toArray(L.UPWARD_OF(L.ZERO), 5).map(L.toInteger), [
+    0,
+    1,
+    2,
+    3,
+    4
+  ]);
+  t.deepEqual(L.toArray(L.UPWARD_OF(L.FIFTEEN), 10).map(L.toInteger), [
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24
+  ]);
+});
+
+test("Infinite Streams (MULTIPLIES_OF)", t => {
+  t.deepEqual(L.toArray(L.MULTIPLIES_OF(L.TWO), 5).map(L.toInteger), [
+    2,
+    4,
+    6,
+    8,
+    10
+  ]);
+  t.deepEqual(L.toArray(L.MULTIPLIES_OF(L.FIVE), 10).map(L.toInteger), [
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45,
+    50
+  ]);
+});

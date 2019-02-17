@@ -138,6 +138,14 @@ export const FIZZBUZZ_FUNC = (a: LambdaInteger) => (b: LambdaInteger) =>
     )
   );
 
+// Infinite Streams
+export const ZEROS = Z(f => UNSHIFT(f as LambdaPair)(ZERO)) as LambdaPair;
+export const UPWARD_OF = Z(f => (n: LambdaInteger) =>
+  UNSHIFT(x => f(INCREMENT(n))(x))(n)
+);
+export const MULTIPLIES_OF = (m: LambdaInteger) =>
+  Z(f => (n: LambdaInteger) => UNSHIFT(x => f(ADD(m)(n))(x))(n))(m);
+
 /**
  * Assert用
  */
@@ -149,11 +157,15 @@ export function toBoolean(b: LambdaBoolean) {
   return b(true)(false);
 }
 
-export function toArray<T>(a: LambdaPair): any[] {
+export function toArray<T>(a: LambdaPair, count: number | null = null): any[] {
   const array = [] as T[];
-  while (!toBoolean(IS_EMPTY(a))) {
+
+  while (!toBoolean(IS_EMPTY(a)) && count !== 0) {
     array.push(FIRST(a));
     a = REST(a);
+    if (typeof count === "number") {
+      count = count - 1;
+    }
   }
   return array;
 }
