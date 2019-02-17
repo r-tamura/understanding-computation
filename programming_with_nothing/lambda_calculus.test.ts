@@ -126,3 +126,49 @@ test("toChar/toString", t => {
   t.is(L.toChar(L.ZERO), "0");
   t.is(L.toString(L.FIZZBUZZ), "FizzBuzz");
 });
+
+test("DIV", t => {
+  t.is(L.toInteger(L.DIV(L.ONE)(L.THREE)), 0);
+  t.is(L.toInteger(L.DIV(L.THREE)(L.TWO)), 1);
+  t.is(L.toInteger(L.DIV(L.HUNDRED)(L.TEN)), 10);
+});
+
+test("PUSH", t => {
+  const mylist = L.RANGE(L.ONE)(L.FIVE);
+  t.deepEqual(L.toArray(L.PUSH(mylist)(L.TEN)).map(L.toInteger), [
+    1,
+    2,
+    3,
+    4,
+    5,
+    10
+  ]);
+});
+
+test("TO_DIGITS", t => {
+  t.deepEqual(L.toArray(L.TO_DIGITS(L.FIVE)).map(L.toInteger), [5]);
+  t.deepEqual(
+    L.toArray(L.TO_DIGITS(L.POWER(L.FIVE)(L.THREE))).map(L.toInteger),
+    [1, 2, 5]
+  );
+});
+
+test("FIZZBUZZ_FUNC", t => {
+  t.deepEqual(L.toArray(L.FIZZBUZZ_FUNC(L.ONE)(L.FIFTEEN)).map(L.toString), [
+    "1",
+    "2",
+    "Fizz",
+    "4",
+    "Buzz",
+    "Fizz",
+    "7",
+    "8",
+    "Fizz",
+    "Buzz",
+    "11",
+    "Fizz",
+    "13",
+    "14",
+    "FizzBuzz"
+  ]);
+});

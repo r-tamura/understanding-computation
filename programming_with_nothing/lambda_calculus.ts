@@ -111,6 +111,34 @@ export const FIZZBUZZ = UNSHIFT(UNSHIFT(UNSHIFT(UNSHIFT(BUZZ)(ZED))(ZED))(I))(
   F
 );
 
+// Number to String
+export const DIV = Z(f => (m: LambdaInteger) => (n: LambdaInteger) =>
+  IF(IS_LESS_OR_EQUAL(n)(m))((x: any) => INCREMENT(f(SUBTRACT(m)(n))(n))(x))(
+    ZERO
+  )
+);
+
+export const PUSH = (l: LambdaPair) => (x: any) =>
+  FOLD(l)(UNSHIFT(EMPTY)(x))(UNSHIFT);
+
+export const TO_DIGITS = Z(f => (n: LambdaInteger) =>
+  PUSH(
+    IF(IS_LESS_OR_EQUAL(n)(DECREMENT(TEN)))(EMPTY)((x: any) =>
+      f(DIV(n)(TEN))(x)
+    )
+  )(MOD(n)(TEN))
+);
+
+// FizzBuzz
+export const FIZZBUZZ_FUNC = (a: LambdaInteger) => (b: LambdaInteger) =>
+  MAP(RANGE(a)(b))((n: LambdaInteger) =>
+    IF(IS_ZERO(MOD(n)(FIFTEEN)))(FIZZBUZZ)(
+      IF(IS_ZERO(MOD(n)(THREE)))(FIZZ)(
+        IF(IS_ZERO(MOD(n)(FIVE)))(BUZZ)(TO_DIGITS(n))
+      )
+    )
+  );
+
 /**
  * Assert用
  */
