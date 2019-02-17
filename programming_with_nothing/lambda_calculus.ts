@@ -65,13 +65,12 @@ export const IS_LESS_OR_EQUAL: LambdaIsLessOrEqual = m => n =>
   IS_ZERO(SUBTRACT(m)(n));
 
 // Note: 関数の構成が複雑なためFunctionで簡易的な定義とする
-type LambdaY = (f: (x: Function) => Function) => Function;
+type LambdaY = <F extends Function>(f: (x: Function) => F) => Function;
 export const Y: LambdaY = f => (x => f(x(x)))(x => f(x(x)));
 export const Z: LambdaY = f => (x => f(y => x(x)(y)))(x => f(y => x(x)(y)));
 
-export const MOD = Z(
-  (f: Function) => (m: LambdaInteger) => (n: LambdaInteger) =>
-    IF(IS_LESS_OR_EQUAL(n)(m))((x: LambdaInteger) => f(SUBTRACT(m)(n))(n)(x))(m)
+export const MOD = Z(f => (m: LambdaInteger) => (n: LambdaInteger) =>
+  IF(IS_LESS_OR_EQUAL(n)(m))(x => f(SUBTRACT(m)(n))(n)(x))(m)
 );
 
 // List
@@ -118,7 +117,7 @@ export const DIV = Z(f => (m: LambdaInteger) => (n: LambdaInteger) =>
   )
 );
 
-export const PUSH = (l: LambdaPair) => (x: any) =>
+export const PUSH = <T>(l: LambdaPair) => (x: T) =>
   FOLD(l)(UNSHIFT(EMPTY)(x))(UNSHIFT);
 
 export const TO_DIGITS = Z(f => (n: LambdaInteger) =>
