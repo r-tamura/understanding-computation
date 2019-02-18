@@ -59,7 +59,7 @@ test("LCFunction#replace", t => {
   // Only free variables is replaced
   const expression2 = new LCCall(
     new LCCall(new LCVariable("x"), new LCVariable("y")),
-    new LCFunction("y", new LCCall("y", new LCVariable("x")))
+    new LCFunction("y", new LCCall(new LCVariable("y"), new LCVariable("x")))
   );
   t.is(
     expression2.replace("x", new LCVariable("z")).toString(),
@@ -68,5 +68,16 @@ test("LCFunction#replace", t => {
   t.is(
     expression2.replace("y", new LCVariable("z")).toString(),
     "x[z][-> y { y[x] }]"
+  );
+});
+
+test("LCFunction#call", t => {
+  const f = new LCFunction(
+    "x",
+    new LCFunction("y", new LCCall(new LCVariable("x"), new LCVariable("y")))
+  );
+  t.is(
+    f.call(new LCFunction("z", new LCVariable("z"))).toString(),
+    "-> y { -> z { z }[y] }"
   );
 });
