@@ -43,8 +43,8 @@ export function flatMap<T, S>(f: (x: T) => S[], xs: T[]) {
 
 export const any = <T>(pred: (a: T) => boolean) => (xs: T[]) => xs.some(pred);
 
-export function intersection<T>(xs: T[], ys: T[]) {
-  const result = [];
+export function intersection<T>(xs: T[], ys: T[]): T[] {
+  const result = [] as T[];
   for (const x of xs) {
     for (const y of ys) {
       if (equals(x, y, identity)) {
@@ -76,10 +76,10 @@ export function isSubset<T>(xs: T[], ys: T[], keyFn = identity) {
   return true;
 }
 
-export function reverse<T>(iter: Iterable<T>) {
+export function reverse<T>(iter: Iterable<T>): T[] {
   switch (iter.constructor) {
     case Array: {
-      const res = [];
+      const res = [] as T[];
       for (const x of iter) {
         res.unshift(x);
       }
